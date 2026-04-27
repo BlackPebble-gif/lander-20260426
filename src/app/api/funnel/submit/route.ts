@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
   const db        = getSupabaseAdmin()
   const fraudFlags: string[] = []
 
-  // ── Parallel fraud checks ──────────────────────────────────────────
+  // ── Parallel fraud checks ────────────────────────────────────────────────
   const [recaptchaResult, ipqsResult, emailResult] = await Promise.allSettled([
     data.recaptchaToken ? verifyRecaptcha(data.recaptchaToken) : Promise.resolve(null),
     checkIpqs(ip),
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
   try {
     const twilio = getTwilioClient()
     const lookup = await twilio.lookups.v2.phoneNumbers(data.phone).fetch({
-      fields: ['line_type_intelligence'],
+      fields: 'line_type_intelligence',
     })
     const lineType = (lookup as Record<string, unknown>).lineTypeIntelligence as Record<string, string> | null
     if (lineType?.type === 'voip' || lineType?.type === 'non-fixed-voip') {
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ blocked: true, reason: 'rate_limit' })
   }
 
-  // ── Intent scoring ─────────────────────────────────────────────────
+  // ── Intent scoring ───────────────────────────────────────────────────────────────
   const { score, tier } = computeIntentScore({
     journeyStage:     data.journeyStage as never,
     timeline:         data.timeline as never,
@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
     fundingFlags:     data.fundingFlags ?? [],
   })
 
-  // ── Insert lead ────────────────────────────────────────────────────
+  // ── Insert lead ──────────────────────────────────────────────────────────────────
   const { data: lead, error } = await db
     .from('leads')
     .insert({
